@@ -31,28 +31,24 @@ pipeline {
         stage('Run Program (Smoke Test)') {
             steps {
                 echo '=== Smoke test ==='
-                sh '''
-                    docker rm -f c-ci-test || true
-                    docker run -d --name c-ci-test ${IMAGE_NAME}:${BUILD_NUMBER}
-                    sleep 2
-
-                    # Capture program output inside container
-                    docker exec c-ci-test ./hello
-
-                    echo "Smoke test OK"
-                '''
+                sh """
+                    # Run the container once and let it exit.
+                    # If ./hello returns 0, this stage passes.
+                    docker run --rm --name c-ci-test ${IMAGE_NAME}:${BUILD_NUMBER} ./hello
+                """
             }
         }
 
         stage('Cleanup') {
             steps {
-                sh "docker rm -f c-ci-test || true"
+                echo '=== Cleanup (no-op, just in case) ==='
+                sh 'docker rm -f c-ci-test || true'
             }
         }
     }
 
     post {
-        success { echo "SUCCESS: All stages passed!" }
-        failure { echo "FAILURE: See details above." }
+        success { echo 'SUCCESS: All stages passed!' }
+        failure { echo 'FAILURE: See details above.' }
     }
 }
