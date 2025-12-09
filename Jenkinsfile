@@ -32,8 +32,10 @@ pipeline {
             steps {
                 echo '=== Smoke test ==='
                 sh """
-                    # Run the container once and let it exit.
-                    # If ./hello returns 0, this stage passes.
+                    # Remove any previous container with this name (ignore errors)
+                    docker rm -f c-ci-test || true
+
+                    # Run the program in a fresh container
                     docker run --rm --name c-ci-test ${IMAGE_NAME}:${BUILD_NUMBER} ./hello
                 """
             }
